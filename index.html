@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#15803d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Verdulián - Lista de Precios</title>
+    <title>Verdulian - Lista de Precios</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -47,7 +47,7 @@
                         <i class="ph-bold ph-scales text-2xl text-emerald-100"></i>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight">Verdulián</h1>
+                        <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight">Verdulian</h1>
                         <p class="text-xs text-emerald-200 font-medium" id="contador-productos">Cargando productos...</p>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
         
         <!-- Instrucción rápida -->
         <div class="flex items-center justify-between mb-3 px-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Tocá el precio para actualizarlo rápido</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Usá el botón Editar en cada tarjeta para modificar</span>
         </div>
 
         <!-- Contenedor de tarjetas -->
@@ -419,48 +419,84 @@
                 const etiquetaUnidad = prod.unidad === 'kg' ? 'x kg' : 'x unid.';
 
                 if (estaEditando) {
-                    // MODO EDICIÓN RÁPIDA DE PRECIO Y OFERTA EN LÍNEA
+                    // MODO EDICIÓN COMPLETA EN LÍNEA (NOMBRE, PRECIO, UNIDAD Y OFERTA)
                     return `
-                    <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-3.5 shadow-md flex flex-col justify-between gap-3 transition">
-                        <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <h3 class="font-extrabold text-slate-900 text-lg leading-snug">${escapeHTML(prod.nombre)}</h3>
+                    <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-3.5 sm:p-4 shadow-md flex flex-col justify-between gap-3 transition">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                                Editando producto
+                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="guardarEdicion('${prod.id}')" title="Guardar cambios" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl shadow font-extrabold text-xs flex items-center gap-1 transition">
+                                    <i class="ph-bold ph-check text-base"></i>
+                                    Guardar
+                                </button>
+                                <button onclick="cancelarEdicion()" title="Cancelar" class="p-1.5 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 rounded-xl font-bold flex items-center justify-center transition">
+                                    <i class="ph-bold ph-x text-base"></i>
+                                </button>
                             </div>
-                            <span class="text-xs font-bold uppercase px-2 py-1 bg-amber-200/70 text-amber-900 rounded-lg">Editando</span>
                         </div>
 
                         <div class="space-y-2.5">
-                            <div class="flex items-center gap-2">
-                                <div class="relative flex-1">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-slate-500 text-xl">$</span>
-                                    <input 
-                                        type="number" 
-                                        id="input-precio-${prod.id}" 
-                                        value="${prod.precio}" 
-                                        step="any"
-                                        min="0"
-                                        onkeydown="manejarTeclaEdicion(event, '${prod.id}')"
-                                        class="w-full pl-8 pr-3 py-2.5 bg-white border-2 border-emerald-600 rounded-xl font-black text-2xl text-slate-900 focus:outline-none shadow-inner"
-                                    >
-                                </div>
-                                <button onclick="guardarEdicion('${prod.id}')" title="Guardar cambios" class="p-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl shadow font-bold flex items-center justify-center">
-                                    <i class="ph-bold ph-check text-2xl"></i>
-                                </button>
-                                <button onclick="cancelarEdicion()" title="Cancelar" class="p-3 bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 rounded-xl font-bold flex items-center justify-center">
-                                    <i class="ph-bold ph-x text-2xl"></i>
-                                </button>
-                            </div>
-
-                            <div class="relative">
-                                <i class="ph-bold ph-tag absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 text-base"></i>
+                            <!-- Editar Nombre -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold uppercase text-slate-600 mb-1">Nombre del producto</label>
                                 <input 
                                     type="text" 
-                                    id="input-oferta-${prod.id}" 
-                                    value="${escapeHTML(prod.oferta || '')}" 
-                                    placeholder="Nota / Oferta (ej: 3 x $3.000 | 5 x $5.000)"
+                                    id="input-nombre-${prod.id}" 
+                                    value="${escapeHTML(prod.nombre)}" 
+                                    placeholder="Nombre del producto"
                                     onkeydown="manejarTeclaEdicion(event, '${prod.id}')"
-                                    class="w-full pl-9 pr-3 py-2 bg-white border border-amber-300 focus:border-amber-500 rounded-xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
+                                    class="w-full px-3 py-2 bg-white border-2 border-amber-300 focus:border-emerald-600 rounded-xl font-extrabold text-base text-slate-900 focus:outline-none"
                                 >
+                            </div>
+
+                            <!-- Editar Precio y Unidad -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase text-slate-600 mb-1">Precio ($)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 font-black text-slate-500 text-base">$</span>
+                                        <input 
+                                            type="number" 
+                                            id="input-precio-${prod.id}" 
+                                            value="${prod.precio}" 
+                                            step="any"
+                                            min="0"
+                                            onkeydown="manejarTeclaEdicion(event, '${prod.id}')"
+                                            class="w-full pl-7 pr-2.5 py-2 bg-white border-2 border-emerald-600 rounded-xl font-black text-lg text-slate-900 focus:outline-none shadow-inner"
+                                        >
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-extrabold uppercase text-slate-600 mb-1">Se vende por</label>
+                                    <select 
+                                        id="input-unidad-${prod.id}"
+                                        onkeydown="manejarTeclaEdicion(event, '${prod.id}')"
+                                        class="w-full px-2.5 py-2.5 bg-white border-2 border-amber-300 focus:border-emerald-600 rounded-xl font-extrabold text-sm text-slate-800 focus:outline-none"
+                                    >
+                                        <option value="kg" ${prod.unidad === 'kg' ? 'selected' : ''}>Por Kilo (kg)</option>
+                                        <option value="unidad" ${prod.unidad === 'unidad' ? 'selected' : ''}>Unidad / Atado</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Editar Oferta / Nota -->
+                            <div>
+                                <label class="block text-[11px] font-extrabold uppercase text-slate-600 mb-1">Oferta o nota (opcional)</label>
+                                <div class="relative">
+                                    <i class="ph-bold ph-tag absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 text-base"></i>
+                                    <input 
+                                        type="text" 
+                                        id="input-oferta-${prod.id}" 
+                                        value="${escapeHTML(prod.oferta || '')}" 
+                                        placeholder="Ej: 3 x $3.000 | 5 x $5.000"
+                                        onkeydown="manejarTeclaEdicion(event, '${prod.id}')"
+                                        class="w-full pl-9 pr-3 py-2 bg-white border border-amber-300 focus:border-amber-500 rounded-xl font-semibold text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
+                                    >
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -475,7 +511,7 @@
                        </div>`
                     : '';
 
-                // MODO VISUALIZACIÓN NORMAL (ALTO CONTRASTE Y BOTONES GRANDES)
+                // MODO VISUALIZACIÓN NORMAL (PRECIO DE SOLO LECTURA + BOTÓN EDITAR)
                 return `
                 <div class="bg-white border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between gap-3 transition">
                     <!-- Info izquierda: Unidad + Nombre + Oferta + Botones de acción -->
@@ -487,36 +523,31 @@
                             ${escapeHTML(prod.nombre)}
                         </h3>
                         ${bloqueOferta}
-                        <div class="mt-2 flex items-center gap-3">
-                            <button onclick="iniciarEdicion('${prod.id}')" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg inline-flex items-center gap-1 transition">
+                        <div class="mt-2.5 flex items-center gap-3">
+                            <button onclick="iniciarEdicion('${prod.id}')" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 active:scale-95 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition">
                                 <i class="ph-bold ph-pencil-simple"></i>
-                                Editar precio / oferta
+                                Editar
                             </button>
-                            <button onclick="pedirEliminar('${prod.id}')" title="Eliminar producto" class="text-xs font-bold text-slate-400 hover:text-red-600 p-1 rounded-lg transition">
+                            <button onclick="pedirEliminar('${prod.id}')" title="Eliminar producto" class="text-xs font-bold text-slate-400 hover:text-red-600 p-1.5 rounded-lg transition">
                                 <i class="ph-bold ph-trash text-base"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Precio gigante tocable a la derecha -->
-                    <button 
-                        onclick="iniciarEdicion('${prod.id}')" 
-                        title="Tocá para editar el precio rápido"
-                        class="group shrink-0 text-right bg-slate-50 hover:bg-emerald-50 active:bg-emerald-100 border border-slate-200 hover:border-emerald-400 px-3.5 py-2.5 rounded-2xl transition cursor-pointer"
-                    >
-                        <div class="font-black text-2xl sm:text-3xl text-emerald-700 group-hover:text-emerald-800 tracking-tight leading-none">
+                    <!-- Precio gigante de solo lectura a la derecha -->
+                    <div class="shrink-0 text-right bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 rounded-2xl select-none">
+                        <div class="font-black text-2xl sm:text-3xl text-emerald-700 tracking-tight leading-none">
                             ${formatearPrecio(prod.precio)}
                         </div>
-                        <div class="text-[11px] font-bold text-slate-400 group-hover:text-emerald-600 mt-1 flex items-center justify-end gap-1">
-                            <span>${etiquetaUnidad}</span>
-                            <i class="ph-bold ph-pencil-simple"></i>
+                        <div class="text-[11px] font-bold text-slate-400 mt-1">
+                            ${etiquetaUnidad}
                         </div>
-                    </button>
+                    </div>
                 </div>
                 `;
             }).join('');
 
-            // Si hay un input en edición, enfocarlo y seleccionar el texto automáticamente
+            // Si hay un input en edición, enfocar el nombre o precio automáticamente
             if (editandoId) {
                 const inputActivo = document.getElementById(`input-precio-${editandoId}`);
                 if (inputActivo) {
@@ -527,7 +558,7 @@
         }
 
         // ==========================================
-        // 5. EDICIÓN RÁPIDA DE PRECIOS
+        // 5. EDICIÓN DE PRODUCTOS
         // ==========================================
         function iniciarEdicion(id) {
             editandoId = id;
@@ -550,22 +581,34 @@
         }
 
         function guardarEdicion(id) {
-            const input = document.getElementById(`input-precio-${id}`);
+            const inputNombre = document.getElementById(`input-nombre-${id}`);
+            const inputPrecio = document.getElementById(`input-precio-${id}`);
+            const inputUnidad = document.getElementById(`input-unidad-${id}`);
             const inputOferta = document.getElementById(`input-oferta-${id}`);
-            if (!input) return;
+            if (!inputNombre || !inputPrecio) return;
 
-            const nuevoPrecio = parseFloat(input.value);
-            if (isNaN(nuevoPrecio) || nuevoPrecio < 0) {
-                mostrarToast('Ingresá un precio válido', 'error');
-                input.focus();
+            const nuevoNombre = inputNombre.value.trim();
+            if (!nuevoNombre) {
+                mostrarToast('Ingresá un nombre para el producto', 'error');
+                inputNombre.focus();
                 return;
             }
 
+            const nuevoPrecio = parseFloat(inputPrecio.value);
+            if (isNaN(nuevoPrecio) || nuevoPrecio < 0) {
+                mostrarToast('Ingresá un precio válido', 'error');
+                inputPrecio.focus();
+                return;
+            }
+
+            const nuevaUnidad = inputUnidad && inputUnidad.value === 'unidad' ? 'unidad' : 'kg';
             const nuevaOferta = inputOferta ? inputOferta.value.trim() : '';
 
             const index = productos.findIndex(p => p.id === id);
             if (index !== -1) {
+                productos[index].nombre = nuevoNombre;
                 productos[index].precio = nuevoPrecio;
+                productos[index].unidad = nuevaUnidad;
                 productos[index].oferta = nuevaOferta;
                 guardarEnStorage();
                 mostrarToast(`${productos[index].nombre} actualizado`);
