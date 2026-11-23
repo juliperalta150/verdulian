@@ -1,4 +1,4 @@
-const CACHE_NAME = 'verdulian-app-v2';
+const CACHE_NAME = 'verdulian-app-v5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

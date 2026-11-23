@@ -68,21 +68,21 @@
                     </div>
                 </div>
 
-                <!-- Botones de Instalar App, Carrito, Respaldo y Agregar -->
+                <!-- Botones de Respaldo, Carrito, Notas y Agregar -->
                 <div class="flex items-center gap-2">
-                    <button id="install-app" type="button" hidden title="Instalar aplicación en tu dispositivo" class="p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-900 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
-                        <i class="ph-bold ph-download-simple text-lg text-emerald-700"></i>
-                        <span class="hidden sm:inline">Descargar App</span>
+                    <button onclick="abrirModalRespaldo()" title="Exportar o Importar lista" class="p-2.5 bg-emerald-800/80 hover:bg-emerald-900 active:scale-95 text-emerald-100 rounded-xl transition flex items-center gap-1.5 text-sm font-semibold border border-emerald-600/50">
+                        <i class="ph-bold ph-arrows-left-right text-lg"></i>
+                        <span class="hidden sm:inline">Respaldo</span>
                     </button>
-                    <p id="install-status" role="status" class="sr-only"></p>
                     <button onclick="abrirCarrito()" title="Ver carrito del cliente" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
                         <i class="ph-fill ph-shopping-cart text-xl text-emerald-600"></i>
                         <span class="hidden sm:inline">Carrito</span>
                         <span id="badge-carrito" class="hidden -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-full items-center justify-center shadow border border-white">0</span>
                     </button>
-                    <button onclick="abrirModalRespaldo()" title="Exportar o Importar lista" class="p-2.5 bg-emerald-800/80 hover:bg-emerald-900 active:scale-95 text-emerald-100 rounded-xl transition flex items-center gap-1.5 text-sm font-semibold border border-emerald-600/50">
-                        <i class="ph-bold ph-arrows-left-right text-lg"></i>
-                        <span class="hidden sm:inline">Respaldo</span>
+                    <button onclick="abrirNotas()" title="Ver y agregar notas" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
+                        <i class="ph-fill ph-pencil-simple text-xl text-emerald-600"></i>
+                        <span class="hidden sm:inline">Notas</span>
+                        <span id="badge-notas" class="hidden -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-full items-center justify-center shadow border border-white">0</span>
                     </button>
                     <button onclick="abrirModalNuevo()" class="px-3.5 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold rounded-xl shadow-md transition flex items-center gap-1.5 text-sm sm:text-base">
                         <i class="ph-bold ph-plus text-lg"></i>
@@ -141,6 +141,19 @@
         </div>
     </main>
 
+    <!-- BOTÓN FLOTANTE DE DESCARGAR APP (ABAJO A LA DERECHA, SOLO VISIBLE SI NO ESTÁ INSTALADA) -->
+    <button
+        id="install-app"
+        type="button"
+        hidden
+        title="Instalar aplicación en tu dispositivo"
+        class="fixed bottom-4 right-4 z-30 px-4 py-3 bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white rounded-2xl shadow-xl transition flex items-center gap-2 text-xs sm:text-sm font-extrabold border-2 border-amber-300"
+    >
+        <i class="ph-bold ph-download-simple text-lg text-amber-300"></i>
+        <span>Descargar App</span>
+    </button>
+    <p id="install-status" role="status" class="sr-only"></p>
+
     <!-- NOTIFICACIÓN FLOTANTE (TOAST) -->
     <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-4">
         <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl font-semibold text-sm flex items-center gap-2.5 border border-slate-700">
@@ -149,67 +162,67 @@
         </div>
     </div>
 
-    <!-- MODAL: AGREGAR NUEVO PRODUCTO -->
-    <div id="modal-nuevo" class="fixed inset-0 z-40 hidden bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up">
-            <div class="bg-emerald-700 text-white px-5 py-4 flex items-center justify-between">
-                <h2 class="font-extrabold text-lg flex items-center gap-2">
-                    <i class="ph-bold ph-plus-circle text-xl text-amber-300"></i>
-                    Nuevo Producto
-                </h2>
-                <button onclick="cerrarModalNuevo()" class="p-2 bg-emerald-800 hover:bg-emerald-900 rounded-xl text-white">
-                    <i class="ph-bold ph-x text-lg"></i>
-                </button>
+    <!-- MODAL: AGREGAR NUEVO PRODUCTO (<dialog> nativo anclado arriba para evitar que el teclado tape los campos) -->
+    <dialog id="modal-nuevo" closedby="any" aria-labelledby="nuevo-titulo" class="mt-2 sm:my-auto mx-auto w-[calc(100%-1rem)] sm:w-full max-w-md rounded-3xl shadow-2xl p-0 bg-white text-slate-900 overflow-y-auto max-h-[92dvh] border border-slate-200">
+        <div class="bg-emerald-700 text-white px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between">
+            <h2 id="nuevo-titulo" class="font-extrabold text-base sm:text-lg flex items-center gap-2">
+                <i class="ph-bold ph-plus-circle text-xl text-amber-300"></i>
+                Nuevo Producto
+            </h2>
+            <button type="button" onclick="cerrarModalNuevo()" aria-label="Cerrar nuevo producto" class="p-1.5 sm:p-2 bg-emerald-800 hover:bg-emerald-900 rounded-xl text-white">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <form id="form-nuevo" onsubmit="guardarNuevoProducto(event)" class="p-3.5 sm:p-5 space-y-2.5 sm:space-y-4">
+            <div>
+                <label for="nuevo-nombre" class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Nombre del producto *</label>
+                <input type="text" id="nuevo-nombre" required placeholder="Ej: Mandarina Criolla" class="w-full px-3.5 py-2 sm:py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none text-base">
             </div>
 
-            <form id="form-nuevo" onsubmit="guardarNuevoProducto(event)" class="p-5 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                 <div>
-                    <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Nombre del producto *</label>
-                    <input type="text" id="nuevo-nombre" required placeholder="Ej: Mandarina Criolla" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none text-base">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Precio ($) *</label>
+                    <label for="nuevo-precio" class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Precio ($) *</label>
                     <div class="relative">
                         <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-extrabold text-slate-400 text-lg">$</span>
-                        <input type="number" id="nuevo-precio" required min="1" step="any" placeholder="1500" class="w-full pl-8 pr-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-extrabold text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none text-lg">
+                        <input type="number" id="nuevo-precio" required min="1" step="any" placeholder="1500" class="w-full pl-8 pr-3 py-2 sm:py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-extrabold text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none text-lg">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Oferta o nota (opcional)</label>
-                    <input type="text" id="nuevo-oferta" placeholder="Ej: 3 x $3.000 | 5 x $5.000" class="w-full px-4 py-3 bg-amber-50/60 border-2 border-amber-200 rounded-xl font-semibold text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none text-sm">
+                    <label for="nuevo-oferta" class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Oferta o nota (opcional)</label>
+                    <input type="text" id="nuevo-oferta" placeholder="Ej: 3 x $3.000" class="w-full px-3.5 py-2 sm:py-3.5 bg-amber-50/60 border-2 border-amber-200 rounded-xl font-semibold text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:bg-white focus:outline-none text-sm">
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Se vende por:</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="nuevo-unidad" value="kg" checked class="peer sr-only">
-                            <div class="py-3 px-4 rounded-xl border-2 border-slate-200 bg-slate-50 text-center font-extrabold text-slate-600 peer-checked:border-emerald-600 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 transition">
-                                Por Kilo (kg)
-                            </div>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="nuevo-unidad" value="unidad" class="peer sr-only">
-                            <div class="py-3 px-4 rounded-xl border-2 border-slate-200 bg-slate-50 text-center font-extrabold text-slate-600 peer-checked:border-emerald-600 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 transition">
-                                Por Unidad / Atado
-                            </div>
-                        </label>
-                    </div>
+            <div>
+                <label class="block text-xs font-extrabold uppercase text-slate-600 mb-1">Se vende por:</label>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="nuevo-unidad" value="kg" checked class="peer sr-only">
+                        <div class="py-2 sm:py-3 px-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-center font-extrabold text-sm text-slate-600 peer-checked:border-emerald-600 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 transition">
+                            Por Kilo (kg)
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="nuevo-unidad" value="unidad" class="peer sr-only">
+                        <div class="py-2 sm:py-3 px-3 rounded-xl border-2 border-slate-200 bg-slate-50 text-center font-extrabold text-sm text-slate-600 peer-checked:border-emerald-600 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 transition">
+                            Por Unidad / Atado
+                        </div>
+                    </label>
                 </div>
+            </div>
 
-                <div class="pt-2 flex gap-3">
-                    <button type="button" onclick="cerrarModalNuevo()" class="flex-1 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="flex-2 w-2/3 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-extrabold rounded-xl shadow-lg transition text-base">
-                        Guardar Producto
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+            <div class="pt-1 flex gap-2.5">
+                <button type="button" onclick="cerrarModalNuevo()" class="flex-1 py-2.5 sm:py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl transition text-sm sm:text-base">
+                    Cancelar
+                </button>
+                <button type="submit" class="w-2/3 py-2.5 sm:py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold rounded-xl shadow-lg transition text-sm sm:text-base">
+                    Guardar Producto
+                </button>
+            </div>
+        </form>
+    </dialog>
 
     <!-- MODAL: CONFIRMAR ELIMINACIÓN -->
     <div id="modal-eliminar" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -282,8 +295,8 @@
     </div>
 
     <!-- APARTADO / MODAL: CARRITO DEL CLIENTE (<dialog> nativo) -->
-    <dialog id="dialog-carrito" closedby="any" aria-labelledby="carrito-titulo" class="m-auto w-full max-w-lg rounded-3xl shadow-2xl p-0 bg-white text-slate-900 overflow-hidden border border-slate-200">
-        <div class="flex flex-col max-h-[88vh]">
+    <dialog id="dialog-carrito" closedby="any" aria-labelledby="carrito-titulo" class="mt-2 sm:my-auto mx-auto w-[calc(100%-1rem)] sm:w-full max-w-lg rounded-3xl shadow-2xl p-0 bg-white text-slate-900 overflow-hidden border border-slate-200">
+        <div class="flex flex-col max-h-[88dvh]">
             <!-- Cabecera del carrito -->
             <div class="bg-emerald-700 text-white px-5 py-4 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2.5">
@@ -343,12 +356,69 @@
         </div>
     </dialog>
 
+    <!-- APARTADO / MODAL: NOTAS Y RECORDATORIOS (<dialog> nativo) -->
+    <dialog id="dialog-notas" closedby="any" aria-labelledby="notas-titulo" class="mt-2 sm:my-auto mx-auto w-[calc(100%-1rem)] sm:w-full max-w-lg rounded-3xl shadow-2xl p-0 bg-white text-slate-900 overflow-hidden border border-slate-200">
+        <div class="flex flex-col max-h-[88dvh]">
+            <!-- Cabecera de Notas -->
+            <div class="bg-emerald-700 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-white p-2 rounded-xl shadow-xs flex items-center justify-center">
+                        <i class="ph-fill ph-pencil-simple text-xl text-emerald-600"></i>
+                    </div>
+                    <div>
+                        <h2 id="notas-titulo" class="font-extrabold text-lg leading-tight">Notas y Recordatorios</h2>
+                        <p id="notas-subtitulo" class="text-xs text-emerald-200 font-medium">0 anotaciones</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-vaciar-notas" type="button" onclick="vaciarNotas()" class="hidden px-3 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-xl text-xs items-center gap-1.5 shadow-xs transition">
+                        <i class="ph-bold ph-trash text-sm"></i>
+                        <span>Borrar todas</span>
+                    </button>
+                    <form method="dialog">
+                        <button type="submit" aria-label="Cerrar notas" class="p-2 bg-emerald-800 hover:bg-emerald-900 rounded-xl text-white flex items-center justify-center transition">
+                            <i class="ph-bold ph-x text-lg"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Formulario para agregar una nueva nota -->
+            <form onsubmit="guardarNuevaNota(event)" class="p-4 bg-slate-50 border-b border-slate-200 shrink-0 space-y-2.5">
+                <label for="input-nueva-nota" class="block text-xs font-extrabold uppercase text-slate-600">Nueva anotación</label>
+                <div class="flex gap-2">
+                    <input
+                        type="text"
+                        id="input-nueva-nota"
+                        placeholder="Escribir nota"
+                        autocomplete="off"
+                        autofocus
+                        class="flex-1 px-3.5 py-2.5 bg-white border-2 border-slate-200 focus:border-emerald-600 rounded-xl font-semibold text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition"
+                    >
+                    <button
+                        type="submit"
+                        class="shrink-0 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold rounded-xl text-sm flex items-center gap-1.5 shadow-sm transition"
+                    >
+                        <i class="ph-bold ph-plus text-base"></i>
+                        <span>Anotar</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Lista de notas guardadas -->
+            <div class="p-4 overflow-y-auto flex-1 space-y-2.5" id="contenedor-items-notas">
+                <!-- Se renderiza dinámicamente -->
+            </div>
+        </div>
+    </dialog>
+
     <script>
         // ==========================================
         // 1. DATOS INICIALES (PRE-CARGA ARGENTINA)
         // ==========================================
         const STORAGE_KEY = 'verduleria_precios_v1';
         const CARRITO_STORAGE_KEY = 'verduleria_carrito_v1';
+        const NOTAS_STORAGE_KEY = 'verduleria_notas_v1';
 
         const PRODUCTOS_INICIALES = [
             { id: '1', nombre: 'Papa negra', precio: 950, unidad: 'kg', oferta: '2 kg x $1.700' },
@@ -368,6 +438,7 @@
         // Estado de la aplicación
         let productos = [];
         let carritoIds = [];
+        let notas = [];
         let filtroTexto = '';
         let filtroCarritoTexto = '';
         let editandoId = null;
@@ -391,6 +462,14 @@
                     const parsed = JSON.parse(carritoGuardado);
                     if (Array.isArray(parsed)) {
                         carritoIds = parsed.map(String);
+                    }
+                }
+
+                const notasGuardadas = localStorage.getItem(NOTAS_STORAGE_KEY);
+                if (notasGuardadas) {
+                    const parsedNotas = JSON.parse(notasGuardadas);
+                    if (Array.isArray(parsedNotas)) {
+                        notas = parsedNotas;
                     }
                 }
             } catch (e) {
@@ -432,12 +511,12 @@
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     const dialogCarrito = document.getElementById('dialog-carrito');
-                    if (dialogCarrito && dialogCarrito.open) {
+                    const dialogNotas = document.getElementById('dialog-notas');
+                    const dialogNuevo = document.getElementById('modal-nuevo');
+                    if ((dialogCarrito && dialogCarrito.open) || (dialogNotas && dialogNotas.open) || (dialogNuevo && dialogNuevo.open)) {
                         return;
                     }
-                    if (!document.getElementById('modal-nuevo').classList.contains('hidden')) {
-                        cerrarModalNuevo();
-                    } else if (!document.getElementById('modal-eliminar').classList.contains('hidden')) {
+                    if (!document.getElementById('modal-eliminar').classList.contains('hidden')) {
                         cerrarModalEliminar();
                     } else if (!document.getElementById('modal-respaldo').classList.contains('hidden')) {
                         cerrarModalRespaldo();
@@ -451,6 +530,7 @@
 
             renderizarLista();
             actualizarBadgeCarrito();
+            actualizarBadgeNotas();
         }
 
         function guardarEnStorage() {
@@ -746,24 +826,32 @@
         // ==========================================
         // 6. AGREGAR Y ELIMINAR PRODUCTOS
         // ==========================================
-        function abrirModalNuevo() {
+        function abrirModalNuevo(enfocarNombre = true) {
             document.getElementById('form-nuevo').reset();
-            document.getElementById('modal-nuevo').classList.remove('hidden');
-            setTimeout(() => document.getElementById('nuevo-nombre').focus(), 50);
+            const dialog = document.getElementById('modal-nuevo');
+            if (dialog && !dialog.open) {
+                dialog.showModal();
+            }
+            if (enfocarNombre) {
+                setTimeout(() => document.getElementById('nuevo-nombre').focus(), 50);
+            }
         }
 
         function agregarDesdeBusqueda() {
-            abrirModalNuevo();
             const textoBuscado = filtroTexto.trim();
+            abrirModalNuevo(!textoBuscado);
             if (textoBuscado) {
                 // Capitalizar primera letra
                 document.getElementById('nuevo-nombre').value = textoBuscado.charAt(0).toUpperCase() + textoBuscado.slice(1);
-                document.getElementById('nuevo-precio').focus();
+                setTimeout(() => document.getElementById('nuevo-precio').focus(), 50);
             }
         }
 
         function cerrarModalNuevo() {
-            document.getElementById('modal-nuevo').classList.add('hidden');
+            const dialog = document.getElementById('modal-nuevo');
+            if (dialog && dialog.open) {
+                dialog.close();
+            }
         }
 
         function guardarNuevoProducto(event) {
@@ -1056,6 +1144,131 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        // ==========================================
+        // 6.6. NOTAS Y RECORDATORIOS
+        // ==========================================
+        function guardarNotasEnStorage() {
+            try {
+                localStorage.setItem(NOTAS_STORAGE_KEY, JSON.stringify(notas));
+            } catch (e) {
+                console.error('Error guardando notas:', e);
+            }
+        }
+
+        function actualizarBadgeNotas() {
+            const badge = document.getElementById('badge-notas');
+            if (!badge) return;
+
+            if (notas.length > 0) {
+                badge.textContent = notas.length;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex', 'absolute');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex', 'absolute');
+            }
+        }
+
+        function abrirNotas() {
+            const dialog = document.getElementById('dialog-notas');
+            if (!dialog) return;
+            renderizarNotas();
+            dialog.showModal();
+        }
+
+        function guardarNuevaNota(event) {
+            event.preventDefault();
+            const input = document.getElementById('input-nueva-nota');
+            if (!input) return;
+
+            const texto = input.value.trim();
+            if (!texto) {
+                mostrarToast('Escribí una nota primero', 'error');
+                input.focus();
+                return;
+            }
+
+            const ahora = new Date();
+            const fechaTexto = ahora.toLocaleDateString('es-AR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            notas.unshift({
+                id: Date.now().toString(),
+                texto,
+                fecha: fechaTexto
+            });
+
+            input.value = '';
+            guardarNotasEnStorage();
+            actualizarBadgeNotas();
+            renderizarNotas();
+            mostrarToast('Nota guardada');
+            input.focus();
+        }
+
+        function eliminarNota(id) {
+            notas = notas.filter(n => n.id !== id);
+            guardarNotasEnStorage();
+            actualizarBadgeNotas();
+            renderizarNotas();
+            mostrarToast('Nota eliminada');
+        }
+
+        function vaciarNotas() {
+            if (notas.length === 0) return;
+            notas = [];
+            guardarNotasEnStorage();
+            actualizarBadgeNotas();
+            renderizarNotas();
+            mostrarToast('Todas las notas fueron borradas');
+        }
+
+        function renderizarNotas() {
+            const contenedor = document.getElementById('contenedor-items-notas');
+            const subtitulo = document.getElementById('notas-subtitulo');
+            const btnVaciar = document.getElementById('btn-vaciar-notas');
+            if (!contenedor || !subtitulo || !btnVaciar) return;
+
+            subtitulo.textContent = `${notas.length} anotación${notas.length === 1 ? '' : 'es'}`;
+
+            if (notas.length === 0) {
+                btnVaciar.classList.add('hidden');
+                btnVaciar.classList.remove('inline-flex');
+                contenedor.innerHTML = `
+                    <div class="text-center py-10 px-4">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="ph-fill ph-pencil-simple text-3xl"></i>
+                        </div>
+                        <h3 class="text-base font-extrabold text-slate-800 mb-1">No hay notas guardadas</h3>
+                        <p class="text-slate-500 text-xs max-w-xs mx-auto">Anotá recordatorios rápidos como qué día llega mercadería, horarios especiales o encargos.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            btnVaciar.classList.remove('hidden');
+            btnVaciar.classList.add('inline-flex');
+
+            contenedor.innerHTML = notas.map(nota => `
+                <div class="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-3.5 shadow-xs flex items-start justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 text-[11px] font-bold text-amber-800/80 mb-1">
+                            <i class="ph-fill ph-push-pin text-amber-600"></i>
+                            <span>${escapeHTML(nota.fecha || '')}</span>
+                        </div>
+                        <p class="font-bold text-slate-900 text-sm sm:text-base leading-snug break-words whitespace-pre-wrap">${escapeHTML(nota.texto)}</p>
+                    </div>
+                    <button type="button" onclick="eliminarNota('${nota.id}')" title="Eliminar nota" aria-label="Eliminar nota" class="shrink-0 p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 active:scale-95 rounded-xl transition">
+                        <i class="ph-bold ph-trash text-lg"></i>
+                    </button>
+                </div>
+            `).join('');
         }
 
         // ==========================================
