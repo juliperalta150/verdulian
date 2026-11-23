@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#15803d">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Verdulian">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <title>Verdulian - Lista de Precios</title>
     
     <!-- Tailwind CSS -->
@@ -33,6 +38,19 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+        [hidden] {
+            display: none !important;
+        }
+        /* Reglas obligatorias para <dialog> modal nativo */
+        dialog:modal {
+            overscroll-behavior: contain;
+        }
+        dialog::backdrop {
+            overflow: hidden;
+            overscroll-behavior: contain;
+            background: rgb(15 23 42 / 0.6);
+            backdrop-filter: blur(2px);
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-200">
@@ -42,18 +60,26 @@
         <div class="max-w-4xl mx-auto px-4 pt-3 pb-4">
             <!-- Barra superior: Título y botones de utilidad -->
             <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                    <div class="bg-white/20 p-2 rounded-xl">
-                        <i class="ph-bold ph-scales text-2xl text-emerald-100"></i>
-                    </div>
+                <div class="flex items-center gap-2.5">
+                    <img src="icon-192.png" alt="Logo de Verdulian" class="w-11 h-11 rounded-xl shadow-md object-cover shrink-0 border border-white/20">
                     <div>
                         <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight">Verdulian</h1>
                         <p class="text-xs text-emerald-200 font-medium" id="contador-productos">Cargando productos...</p>
                     </div>
                 </div>
 
-                <!-- Botones de Respaldo y Agregar -->
+                <!-- Botones de Instalar App, Carrito, Respaldo y Agregar -->
                 <div class="flex items-center gap-2">
+                    <button id="install-app" type="button" hidden title="Instalar aplicación en tu dispositivo" class="p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-900 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
+                        <i class="ph-bold ph-download-simple text-lg text-emerald-700"></i>
+                        <span class="hidden sm:inline">Descargar App</span>
+                    </button>
+                    <p id="install-status" role="status" class="sr-only"></p>
+                    <button onclick="abrirCarrito()" title="Ver carrito del cliente" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
+                        <i class="ph-fill ph-shopping-cart text-xl text-emerald-600"></i>
+                        <span class="hidden sm:inline">Carrito</span>
+                        <span id="badge-carrito" class="hidden -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-full items-center justify-center shadow border border-white">0</span>
+                    </button>
                     <button onclick="abrirModalRespaldo()" title="Exportar o Importar lista" class="p-2.5 bg-emerald-800/80 hover:bg-emerald-900 active:scale-95 text-emerald-100 rounded-xl transition flex items-center gap-1.5 text-sm font-semibold border border-emerald-600/50">
                         <i class="ph-bold ph-arrows-left-right text-lg"></i>
                         <span class="hidden sm:inline">Respaldo</span>
@@ -71,7 +97,7 @@
                 <input 
                     type="text" 
                     id="buscador" 
-                    placeholder="Buscar producto (ej: Papa, Tomate, Banana)..." 
+                    placeholder="Buscar producto" 
                     autocomplete="off"
                     class="w-full pl-12 pr-14 py-3.5 sm:py-4 bg-white text-slate-900 placeholder-slate-400 font-semibold text-base sm:text-lg rounded-2xl shadow-inner focus:outline-none focus:ring-4 focus:ring-amber-400/70 transition"
                 >
@@ -251,21 +277,78 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Restaurar valores de fábrica -->
-                <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
-                    <span class="text-xs text-slate-400">¿Querés volver a los productos de ejemplo?</span>
-                    <button onclick="restaurarPorDefecto()" class="text-xs font-bold text-red-600 hover:underline">Restaurar iniciales</button>
-                </div>
             </div>
         </div>
     </div>
+
+    <!-- APARTADO / MODAL: CARRITO DEL CLIENTE (<dialog> nativo) -->
+    <dialog id="dialog-carrito" closedby="any" aria-labelledby="carrito-titulo" class="m-auto w-full max-w-lg rounded-3xl shadow-2xl p-0 bg-white text-slate-900 overflow-hidden border border-slate-200">
+        <div class="flex flex-col max-h-[88vh]">
+            <!-- Cabecera del carrito -->
+            <div class="bg-emerald-700 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-white p-2 rounded-xl shadow-xs flex items-center justify-center">
+                        <i class="ph-fill ph-shopping-cart text-xl text-emerald-600"></i>
+                    </div>
+                    <div>
+                        <h2 id="carrito-titulo" class="font-extrabold text-lg leading-tight">Carrito del Cliente</h2>
+                        <p id="carrito-subtitulo" class="text-xs text-emerald-200 font-medium">0 productos seleccionados</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-vaciar-carrito" type="button" onclick="vaciarCarrito()" class="hidden px-3 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-extrabold rounded-xl text-xs items-center gap-1.5 shadow-xs transition">
+                        <i class="ph-bold ph-trash text-sm"></i>
+                        <span>Vaciar</span>
+                    </button>
+                    <form method="dialog">
+                        <button type="submit" aria-label="Cerrar carrito" class="p-2 bg-emerald-800 hover:bg-emerald-900 rounded-xl text-white flex items-center justify-center transition">
+                            <i class="ph-bold ph-x text-lg"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Buscador interno para agregar más productos al carrito -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 shrink-0">
+                <label for="buscador-carrito" class="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Agregar producto al carrito</label>
+                <div class="relative flex items-center">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 text-slate-400 text-lg pointer-events-none"></i>
+                    <input
+                        type="text"
+                        id="buscador-carrito"
+                        placeholder="Buscar producto"
+                        autocomplete="off"
+                        autofocus
+                        class="w-full pl-10 pr-10 py-2.5 bg-white border-2 border-slate-200 focus:border-emerald-600 rounded-xl font-semibold text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition"
+                    >
+                    <button
+                        id="btn-limpiar-buscador-carrito"
+                        type="button"
+                        onclick="limpiarBusquedaCarrito()"
+                        aria-label="Limpiar búsqueda del carrito"
+                        class="hidden absolute right-2 w-8 h-8 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg items-center justify-center transition"
+                    >
+                        <i class="ph-bold ph-x text-base"></i>
+                    </button>
+                </div>
+                <!-- Resultados de búsqueda rápida para sumar al carrito -->
+                <div id="resultados-buscador-carrito" class="hidden mt-2 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 shadow-sm">
+                </div>
+            </div>
+
+            <!-- Lista de productos actualmente en el carrito -->
+            <div class="p-4 overflow-y-auto flex-1 space-y-2.5" id="contenedor-items-carrito">
+                <!-- Se renderiza dinámicamente -->
+            </div>
+        </div>
+    </dialog>
 
     <script>
         // ==========================================
         // 1. DATOS INICIALES (PRE-CARGA ARGENTINA)
         // ==========================================
         const STORAGE_KEY = 'verduleria_precios_v1';
+        const CARRITO_STORAGE_KEY = 'verduleria_carrito_v1';
 
         const PRODUCTOS_INICIALES = [
             { id: '1', nombre: 'Papa negra', precio: 950, unidad: 'kg', oferta: '2 kg x $1.700' },
@@ -284,7 +367,9 @@
 
         // Estado de la aplicación
         let productos = [];
+        let carritoIds = [];
         let filtroTexto = '';
+        let filtroCarritoTexto = '';
         let editandoId = null;
         let idParaEliminar = null;
 
@@ -297,12 +382,20 @@
                 if (guardados) {
                     productos = JSON.parse(guardados);
                 } else {
-                    productos = [...PRODUCTOS_INICIALES];
+                    productos = PRODUCTOS_INICIALES.map(p => ({ ...p }));
                     guardarEnStorage();
+                }
+
+                const carritoGuardado = localStorage.getItem(CARRITO_STORAGE_KEY);
+                if (carritoGuardado) {
+                    const parsed = JSON.parse(carritoGuardado);
+                    if (Array.isArray(parsed)) {
+                        carritoIds = parsed.map(String);
+                    }
                 }
             } catch (e) {
                 console.error('Error leyendo localStorage:', e);
-                productos = [...PRODUCTOS_INICIALES];
+                productos = PRODUCTOS_INICIALES.map(p => ({ ...p }));
             }
 
             // Configurar listener del buscador en tiempo real
@@ -313,9 +406,35 @@
                 renderizarLista();
             });
 
+            // Configurar listener del buscador interno del carrito
+            const inputBuscadorCarrito = document.getElementById('buscador-carrito');
+            if (inputBuscadorCarrito) {
+                inputBuscadorCarrito.addEventListener('input', (e) => {
+                    filtroCarritoTexto = e.target.value;
+                    renderizarResultadosBusquedaCarrito();
+                });
+            }
+
+            // Fallback de light-dismiss para <dialog closedby="any"> en navegadores sin soporte nativo de closedBy
+            if (!('closedBy' in HTMLDialogElement.prototype)) {
+                const outside = (e, dialog) => {
+                    const r = dialog.getBoundingClientRect();
+                    return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+                };
+                for (const dialog of document.querySelectorAll('dialog[closedby="any"]')) {
+                    let pressedOutside = false;
+                    dialog.addEventListener('pointerdown', (e) => { pressedOutside = outside(e, dialog); });
+                    dialog.addEventListener('pointerup', (e) => { if (pressedOutside && outside(e, dialog)) dialog.close(); });
+                }
+            }
+
             // Atajo de teclado: Escape limpia búsqueda o cierra modales
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
+                    const dialogCarrito = document.getElementById('dialog-carrito');
+                    if (dialogCarrito && dialogCarrito.open) {
+                        return;
+                    }
                     if (!document.getElementById('modal-nuevo').classList.contains('hidden')) {
                         cerrarModalNuevo();
                     } else if (!document.getElementById('modal-eliminar').classList.contains('hidden')) {
@@ -331,6 +450,7 @@
             });
 
             renderizarLista();
+            actualizarBadgeCarrito();
         }
 
         function guardarEnStorage() {
@@ -417,6 +537,7 @@
             contenedor.innerHTML = filtrados.map(prod => {
                 const estaEditando = editandoId === prod.id;
                 const etiquetaUnidad = prod.unidad === 'kg' ? 'x kg' : 'x unid.';
+                const enCarrito = carritoIds.includes(prod.id);
 
                 if (estaEditando) {
                     // MODO EDICIÓN COMPLETA EN LÍNEA (NOMBRE, PRECIO, UNIDAD Y OFERTA)
@@ -519,12 +640,16 @@
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-xs font-bold text-slate-400 uppercase">${etiquetaUnidad}</span>
                         </div>
-                        <h3 class="font-extrabold text-slate-900 text-lg sm:text-xl leading-tight truncate" title="${escapeHTML(prod.nombre)}">
+                        <h3 class="font-extrabold text-slate-900 text-lg sm:text-xl leading-snug line-clamp-2 break-words" title="${escapeHTML(prod.nombre)}">
                             ${escapeHTML(prod.nombre)}
                         </h3>
                         ${bloqueOferta}
-                        <div class="mt-2.5 flex items-center gap-3">
-                            <button onclick="iniciarEdicion('${prod.id}')" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 active:scale-95 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition">
+                        <div class="mt-2.5 flex items-center flex-wrap gap-2">
+                            <button onclick="alternarEnCarrito('${prod.id}')" title="${enCarrito ? 'Quitar del carrito' : 'Agregar al carrito'}" class="text-xs font-extrabold ${enCarrito ? 'text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs' : 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200'} active:scale-95 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition">
+                                <i class="${enCarrito ? 'ph-fill ph-check-circle' : 'ph-fill ph-shopping-cart text-emerald-600'} text-sm"></i>
+                                ${enCarrito ? 'En carrito' : 'Al carrito'}
+                            </button>
+                            <button onclick="iniciarEdicion('${prod.id}')" class="text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 active:scale-95 px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1 transition">
                                 <i class="ph-bold ph-pencil-simple"></i>
                                 Editar
                             </button>
@@ -679,9 +804,12 @@
 
             document.getElementById('btn-confirmar-eliminar').onclick = () => {
                 productos = productos.filter(p => p.id !== idParaEliminar);
+                carritoIds = carritoIds.filter(cid => cid !== idParaEliminar);
                 guardarEnStorage();
+                guardarCarritoEnStorage();
                 cerrarModalEliminar();
                 renderizarLista();
+                actualizarBadgeCarrito();
                 mostrarToast('Producto eliminado');
             };
         }
@@ -689,6 +817,245 @@
         function cerrarModalEliminar() {
             idParaEliminar = null;
             document.getElementById('modal-eliminar').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 6.5. CARRITO DEL CLIENTE
+        // ==========================================
+        function guardarCarritoEnStorage() {
+            try {
+                localStorage.setItem(CARRITO_STORAGE_KEY, JSON.stringify(carritoIds));
+            } catch (e) {
+                console.error('Error guardando carrito:', e);
+            }
+        }
+
+        function actualizarBadgeCarrito() {
+            // Filtrar IDs que sigan existiendo en la lista de productos
+            const idsValidos = carritoIds.filter(id => productos.some(p => p.id === id));
+            if (idsValidos.length !== carritoIds.length) {
+                carritoIds = idsValidos;
+                guardarCarritoEnStorage();
+            }
+
+            const badge = document.getElementById('badge-carrito');
+            if (!badge) return;
+
+            if (carritoIds.length > 0) {
+                badge.textContent = carritoIds.length;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex', 'absolute');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex', 'absolute');
+            }
+        }
+
+        function alternarEnCarrito(id) {
+            const prod = productos.find(p => p.id === id);
+            if (!prod) return;
+
+            if (carritoIds.includes(id)) {
+                carritoIds = carritoIds.filter(item => item !== id);
+                mostrarToast(`Quitado del carrito: ${prod.nombre}`);
+            } else {
+                carritoIds.push(id);
+                mostrarToast(`Al carrito: ${prod.nombre}`);
+            }
+
+            guardarCarritoEnStorage();
+            actualizarBadgeCarrito();
+            renderizarLista();
+            renderizarCarrito();
+        }
+
+        function agregarAlCarritoDesdeBuscador(id) {
+            const prod = productos.find(p => p.id === id);
+            if (!prod) return;
+
+            if (!carritoIds.includes(id)) {
+                carritoIds.push(id);
+                guardarCarritoEnStorage();
+                actualizarBadgeCarrito();
+                renderizarLista();
+                mostrarToast(`Al carrito: ${prod.nombre}`);
+            }
+
+            limpiarBusquedaCarrito();
+            renderizarCarrito();
+        }
+
+        function quitarDelCarrito(id) {
+            carritoIds = carritoIds.filter(item => item !== id);
+            guardarCarritoEnStorage();
+            actualizarBadgeCarrito();
+            renderizarLista();
+            renderizarCarrito();
+            renderizarResultadosBusquedaCarrito();
+        }
+
+        function vaciarCarrito() {
+            if (carritoIds.length === 0) return;
+            carritoIds = [];
+            guardarCarritoEnStorage();
+            actualizarBadgeCarrito();
+            renderizarLista();
+            renderizarCarrito();
+            renderizarResultadosBusquedaCarrito();
+            mostrarToast('Carrito vaciado');
+        }
+
+        function abrirCarrito() {
+            const dialog = document.getElementById('dialog-carrito');
+            if (!dialog) return;
+            filtroCarritoTexto = '';
+            const input = document.getElementById('buscador-carrito');
+            if (input) input.value = '';
+            renderizarResultadosBusquedaCarrito();
+            renderizarCarrito();
+            dialog.showModal();
+        }
+
+        function limpiarBusquedaCarrito() {
+            const input = document.getElementById('buscador-carrito');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            filtroCarritoTexto = '';
+            renderizarResultadosBusquedaCarrito();
+        }
+
+        function renderizarResultadosBusquedaCarrito() {
+            const contenedorResultados = document.getElementById('resultados-buscador-carrito');
+            const btnLimpiar = document.getElementById('btn-limpiar-buscador-carrito');
+            if (!contenedorResultados || !btnLimpiar) return;
+
+            if (filtroCarritoTexto.length > 0) {
+                btnLimpiar.classList.remove('hidden');
+                btnLimpiar.classList.add('flex');
+            } else {
+                btnLimpiar.classList.add('hidden');
+                btnLimpiar.classList.remove('flex');
+                contenedorResultados.classList.add('hidden');
+                contenedorResultados.innerHTML = '';
+                return;
+            }
+
+            const query = normalizarTexto(filtroCarritoTexto);
+            if (!query) {
+                contenedorResultados.classList.add('hidden');
+                contenedorResultados.innerHTML = '';
+                return;
+            }
+
+            const coincidencias = productos
+                .filter(prod => {
+                    const nombreNorm = normalizarTexto(prod.nombre);
+                    const ofertaNorm = normalizarTexto(prod.oferta);
+                    return nombreNorm.includes(query) || ofertaNorm.includes(query);
+                })
+                .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+            contenedorResultados.classList.remove('hidden');
+
+            if (coincidencias.length === 0) {
+                contenedorResultados.innerHTML = `
+                    <div class="p-3 text-center text-xs font-semibold text-slate-500">
+                        No se encontraron productos con "${escapeHTML(filtroCarritoTexto.trim())}"
+                    </div>
+                `;
+                return;
+            }
+
+            contenedorResultados.innerHTML = coincidencias.map(prod => {
+                const yaEsta = carritoIds.includes(prod.id);
+                const etiquetaUnidad = prod.unidad === 'kg' ? 'x kg' : 'x unid.';
+                return `
+                    <div class="p-2.5 hover:bg-slate-50 flex items-center justify-between gap-2 transition">
+                        <div class="min-w-0 flex-1">
+                            <div class="font-extrabold text-sm text-slate-900 line-clamp-2 break-words">${escapeHTML(prod.nombre)}</div>
+                            <div class="text-xs font-bold text-emerald-700">${formatearPrecio(prod.precio)} <span class="text-slate-400 font-semibold">${etiquetaUnidad}</span></div>
+                        </div>
+                        ${yaEsta
+                            ? `<span class="shrink-0 px-2.5 py-1.5 bg-slate-100 text-slate-500 font-bold rounded-lg text-xs inline-flex items-center gap-1">
+                                   <i class="ph-fill ph-check-circle text-emerald-600"></i>
+                                   En carrito
+                               </span>`
+                            : `<button type="button" onclick="agregarAlCarritoDesdeBuscador('${prod.id}')" class="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold rounded-lg text-xs inline-flex items-center gap-1 shadow-xs transition">
+                                   <i class="ph-bold ph-plus"></i>
+                                   Agregar
+                               </button>`
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderizarCarrito() {
+            const contenedor = document.getElementById('contenedor-items-carrito');
+            const subtitulo = document.getElementById('carrito-subtitulo');
+            const btnVaciar = document.getElementById('btn-vaciar-carrito');
+            if (!contenedor || !subtitulo || !btnVaciar) return;
+
+            const items = carritoIds
+                .map(id => productos.find(p => p.id === id))
+                .filter(Boolean);
+
+            subtitulo.textContent = `${items.length} producto${items.length === 1 ? '' : 's'} seleccionado${items.length === 1 ? '' : 's'}`;
+
+            if (items.length === 0) {
+                btnVaciar.classList.add('hidden');
+                btnVaciar.classList.remove('inline-flex');
+                contenedor.innerHTML = `
+                    <div class="text-center py-10 px-4">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="ph-fill ph-shopping-cart text-3xl"></i>
+                        </div>
+                        <h3 class="text-base font-extrabold text-slate-800 mb-1">El carrito está vacío</h3>
+                        <p class="text-slate-500 text-xs max-w-xs mx-auto">Usá el buscador de arriba o el botón "Al carrito" en cada tarjeta para tener a mano los precios de lo que lleva el cliente.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            btnVaciar.classList.remove('hidden');
+            btnVaciar.classList.add('inline-flex');
+
+            contenedor.innerHTML = items.map(prod => {
+                const etiquetaUnidad = prod.unidad === 'kg' ? 'x kg' : 'x unid.';
+                const bloqueOferta = prod.oferta && prod.oferta.trim() !== ''
+                    ? `<div class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 border border-amber-300/80 text-amber-950 rounded-md text-xs font-extrabold max-w-full">
+                           <i class="ph-fill ph-tag text-amber-600 shrink-0 text-xs"></i>
+                           <span class="truncate">${escapeHTML(prod.oferta)}</span>
+                       </div>`
+                    : '';
+
+                return `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-3 shadow-xs flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase block mb-0.5">${etiquetaUnidad}</span>
+                            <h4 class="font-extrabold text-slate-900 text-base sm:text-lg leading-snug line-clamp-2 break-words">
+                                ${escapeHTML(prod.nombre)}
+                            </h4>
+                            ${bloqueOferta}
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <div class="text-right bg-emerald-50/70 border border-emerald-200/80 px-3 py-2 rounded-xl">
+                                <div class="font-black text-xl sm:text-2xl text-emerald-700 leading-none">
+                                    ${formatearPrecio(prod.precio)}
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-500 mt-1">
+                                    ${etiquetaUnidad}
+                                </div>
+                            </div>
+                            <button type="button" onclick="quitarDelCarrito('${prod.id}')" title="Quitar del carrito" aria-label="Quitar ${escapeHTML(prod.nombre)} del carrito" class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 active:scale-95 rounded-xl transition">
+                                <i class="ph-bold ph-trash text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // ==========================================
@@ -751,6 +1118,7 @@
                 guardarEnStorage();
                 cerrarModalRespaldo();
                 renderizarLista();
+                actualizarBadgeCarrito();
                 mostrarToast(`¡Listo! Se cargaron ${productos.length} productos`);
             } catch (e) {
                 mostrarToast('El texto o archivo no tiene un formato válido', 'error');
@@ -773,16 +1141,84 @@
             const lector = new FileReader();
             lector.onload = (e) => {
                 procesarImportacionJSON(e.target.result);
+                event.target.value = '';
             };
             lector.readAsText(archivo);
         }
 
-        function restaurarPorDefecto() {
-            productos = [...PRODUCTOS_INICIALES];
-            guardarEnStorage();
-            cerrarModalRespaldo();
-            renderizarLista();
-            mostrarToast('Lista inicial restaurada');
+        // ==========================================
+        // 8. INSTALACIÓN DE APLICACIÓN (PWA)
+        // ==========================================
+        function inicializarPWA() {
+            if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                    console.warn('No se pudo registrar el Service Worker:', err);
+                });
+            }
+
+            const installButton = document.querySelector('#install-app');
+            const installStatus = document.querySelector('#install-status');
+            if (!installButton || !installStatus) return;
+
+            const supportsWebInstall = typeof Navigator.prototype.install === 'function';
+            let deferredInstallPrompt;
+
+            if (supportsWebInstall) {
+                installButton.hidden = false;
+            }
+
+            window.addEventListener('beforeinstallprompt', (event) => {
+                event.preventDefault();
+                deferredInstallPrompt = event;
+
+                if (!supportsWebInstall) {
+                    installButton.hidden = false;
+                }
+            });
+
+            window.addEventListener('appinstalled', () => {
+                deferredInstallPrompt = undefined;
+                installButton.hidden = true;
+                installStatus.textContent = 'La aplicación fue instalada.';
+                mostrarToast('¡Aplicación instalada con éxito!');
+            });
+
+            installButton.addEventListener('click', async () => {
+                if (installButton.getAttribute('aria-disabled') === 'true') {
+                    return;
+                }
+                installButton.setAttribute('aria-disabled', 'true');
+
+                try {
+                    if (supportsWebInstall) {
+                        await navigator.install();
+                        installStatus.textContent = 'La aplicación fue instalada o abierta.';
+                        installButton.hidden = true;
+                    } else if (deferredInstallPrompt) {
+                        const promptEvent = deferredInstallPrompt;
+                        deferredInstallPrompt = undefined;
+                        await promptEvent.prompt();
+                        const { outcome } = await promptEvent.userChoice;
+
+                        installStatus.textContent =
+                            outcome === 'accepted'
+                                ? 'La aplicación fue instalada.'
+                                : 'Instalación cancelada.';
+                        if (!deferredInstallPrompt) {
+                            installButton.hidden = true;
+                        }
+                    }
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        installStatus.textContent = 'La instalación fue cancelada o no pudo completarse.';
+                    } else {
+                        installStatus.textContent = 'No se pudo iniciar la instalación.';
+                        console.error(error);
+                    }
+                } finally {
+                    installButton.removeAttribute('aria-disabled');
+                }
+            });
         }
 
         // ==========================================
@@ -818,7 +1254,10 @@
         }
 
         // Arrancar aplicación al cargar
-        window.addEventListener('DOMContentLoaded', inicializarApp);
+        window.addEventListener('DOMContentLoaded', () => {
+            inicializarApp();
+            inicializarPWA();
+        });
     </script>
 </body>
 </html>
