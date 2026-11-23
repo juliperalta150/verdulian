@@ -53,40 +53,39 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-200">
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col selection:bg-emerald-200 overflow-x-hidden">
 
     <!-- CABECERA FIJA CON BUSCADOR EN TIEMPO REAL -->
     <header class="sticky top-0 z-30 bg-emerald-700 text-white shadow-lg">
-        <div class="max-w-4xl mx-auto px-4 pt-3 pb-4">
+        <div class="max-w-4xl mx-auto px-3.5 sm:px-4 pt-3 pb-4">
             <!-- Barra superior: Título y botones de utilidad -->
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2.5">
-                    <img src="icon-192.png" alt="Logo de Verdulian" class="w-11 h-11 rounded-xl shadow-md object-cover shrink-0 border border-white/20">
-                    <div>
-                        <h1 class="font-extrabold text-lg sm:text-xl leading-tight tracking-tight">Verdulian</h1>
-                        <p class="text-xs text-emerald-200 font-medium" id="contador-productos">Cargando productos...</p>
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2 min-w-0">
+                    <img src="icon-192.png" alt="Logo de Verdulian" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl shadow-md object-cover shrink-0 border border-white/20">
+                    <div class="min-w-0">
+                        <h1 class="font-extrabold text-base sm:text-xl leading-tight tracking-tight truncate">Verdulian</h1>
+                        <p class="text-[11px] sm:text-xs text-emerald-200 font-medium truncate" id="contador-productos">Cargando productos...</p>
                     </div>
                 </div>
 
-                <!-- Botones de Respaldo, Carrito, Notas y Agregar -->
-                <div class="flex items-center gap-2">
-                    <button onclick="abrirModalRespaldo()" title="Exportar o Importar lista" class="p-2.5 bg-emerald-800/80 hover:bg-emerald-900 active:scale-95 text-emerald-100 rounded-xl transition flex items-center gap-1.5 text-sm font-semibold border border-emerald-600/50">
-                        <i class="ph-bold ph-arrows-left-right text-lg"></i>
+                <!-- Botones de Respaldo, Carrito, Notas y Agregar (+) -->
+                <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                    <button onclick="abrirModalRespaldo()" title="Exportar o Importar lista" aria-label="Respaldo" class="p-2.5 bg-emerald-800/80 hover:bg-emerald-900 active:scale-95 text-emerald-100 rounded-xl transition flex items-center justify-center gap-1.5 text-sm font-semibold border border-emerald-600/50">
+                        <i class="ph-bold ph-arrows-left-right text-xl"></i>
                         <span class="hidden sm:inline">Respaldo</span>
                     </button>
-                    <button onclick="abrirCarrito()" title="Ver carrito del cliente" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
+                    <button onclick="abrirCarrito()" title="Ver carrito del cliente" aria-label="Carrito" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center justify-center gap-1.5 text-sm font-extrabold">
                         <i class="ph-fill ph-shopping-cart text-xl text-emerald-600"></i>
                         <span class="hidden sm:inline">Carrito</span>
                         <span id="badge-carrito" class="hidden -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-full items-center justify-center shadow border border-white">0</span>
                     </button>
-                    <button onclick="abrirNotas()" title="Ver y agregar notas" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center gap-1.5 text-sm font-extrabold">
+                    <button onclick="abrirNotas()" title="Ver y agregar notas" aria-label="Notas" class="relative p-2.5 bg-white hover:bg-emerald-50 active:scale-95 text-emerald-800 rounded-xl shadow-md transition flex items-center justify-center gap-1.5 text-sm font-extrabold">
                         <i class="ph-fill ph-pencil-simple text-xl text-emerald-600"></i>
                         <span class="hidden sm:inline">Notas</span>
                         <span id="badge-notas" class="hidden -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 bg-amber-400 text-slate-950 font-black text-xs rounded-full items-center justify-center shadow border border-white">0</span>
                     </button>
-                    <button onclick="abrirModalNuevo()" class="px-3.5 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold rounded-xl shadow-md transition flex items-center gap-1.5 text-sm sm:text-base">
-                        <i class="ph-bold ph-plus text-lg"></i>
-                        <span>Agregar</span>
+                    <button onclick="abrirModalNuevo()" title="Agregar producto" aria-label="Agregar producto" class="p-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold rounded-xl shadow-md transition flex items-center justify-center">
+                        <i class="ph-bold ph-plus text-xl"></i>
                     </button>
                 </div>
             </div>
